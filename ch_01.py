@@ -258,13 +258,13 @@ def _(df):
             # Convert timestamp back to datetime
             start_date = datetime.fromtimestamp(start_date)
             end_date = datetime.fromtimestamp(end_date)
-        
+
             # Filter data by date range
             filtered_df = df[(df['measured_date'] >= start_date) & (df['measured_date'] <= end_date)]
-        
+
             # Create plot
             plt.figure(figsize=(12, 8))
-        
+
             # Scatter plot with color representing temperature
             scatter = plt.scatter(filtered_df['longitude'], filtered_df['latitude'], 
                                 c=filtered_df['temp'], 
@@ -273,16 +273,16 @@ def _(df):
                                 s=50,
                                 vmin=df['temp'].min(),
                                 vmax=df['temp'].max())
-        
+
             # Add colorbar
             cbar = plt.colorbar(scatter)
             cbar.set_label('Temperature')
-        
+
             # Add labels and title
             plt.xlabel('Longitude')
             plt.ylabel('Latitude')
             plt.title(f'Temperature Distribution by Geographic Location\n({start_date.strftime("%Y-%m-%d")} to {end_date.strftime("%Y-%m-%d")})')
-        
+
             plt.grid(True, alpha=0.3)
             plt.tight_layout()
             return plt.gca()
@@ -310,13 +310,13 @@ def _(df, plt):
         # Convert timestamp back to datetime
         # start_date = datetime.fromtimestamp(start_date)
         # end_date = datetime.fromtimestamp(end_date)
-    
+
         # Filter data by date range
         filtered_df = df[(df['measured_date'] >= start_date) & (df['measured_date'] <= end_date)]
-    
+
         # Create plot
         plt.figure(figsize=(12, 8))
-    
+
         # Scatter plot with color representing temperature
         scatter = plt.scatter(filtered_df['longitude'], filtered_df['latitude'], 
                             c=filtered_df['temp'], 
@@ -325,32 +325,49 @@ def _(df, plt):
                             s=50,
                             vmin=df['temp'].min(),
                             vmax=df['temp'].max())
-    
+
         # Add colorbar
         cbar = plt.colorbar(scatter)
         cbar.set_label('Temperature')
-    
+
         # Add labels and title
         plt.xlabel('Longitude')
         plt.ylabel('Latitude')
         plt.title(f'Temperature Distribution by Geographic Location\n({start_date.strftime("%Y-%m-%d")} to {end_date.strftime("%Y-%m-%d")})')
-    
+
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
         return plt.gca()
-
     return (create_interactive_plot,)
 
 
 @app.cell
 def _(create_interactive_plot, df):
     create_interactive_plot(df['measured_date'][1], df['measured_date'][1])
-
     return
 
 
 @app.cell
-def _():
+def _(pd):
+    df_student_math = pd.read_csv('./1. ImportingTabularData/data/student-mat.csv', sep=";")
+    return (df_student_math,)
+
+
+@app.cell
+def _(df_student_math):
+    df_student_math
+    return
+
+
+@app.cell
+def _(pd):
+    df_student_por = pd.read_csv('./1. ImportingTabularData/data/student-por.csv', sep=";")
+    return (df_student_por,)
+
+
+@app.cell
+def _(df_student_por):
+    df_student_por
     return
 
 
