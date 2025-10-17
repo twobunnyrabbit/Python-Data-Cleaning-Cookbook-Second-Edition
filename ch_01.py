@@ -8,7 +8,17 @@ app = marimo.App(width="medium")
 def _():
     import marimo as mo
     import pandas as pd
-    return mo, pd
+    import os
+
+    from dotenv import load_dotenv
+    return load_dotenv, mo, pd
+
+
+@app.cell
+def _(load_dotenv):
+    load_dotenv()
+    # os.getenv('OLLAMA_API_KEY')
+    return
 
 
 @app.cell(hide_code=True)
@@ -246,12 +256,165 @@ def _(df_student_math):
 @app.cell
 def _(pd):
     df_student_por = pd.read_csv('./1. ImportingTabularData/data/student-por.csv', sep=";")
-    return (df_student_por,)
+    return
 
 
 @app.cell
-def _(df_student_por):
-    df_student_por
+def _(df_student_math):
+    is_missing = (df_student_math.isna().sum() > 0).values
+    is_missing
+    # no missing values in df_student_math
+    return
+
+
+@app.cell
+def _(df_student_math):
+    cols_original = df_student_math.columns.to_list()
+    cols_original
+    return (cols_original,)
+
+
+@app.cell
+def _(cols_original):
+    # order columns
+    last_three_cols = cols_original[-3:]
+    time_cols = [x for x in cols_original if x.endswith('time')]
+    remaining_cols = [x for x in cols_original if x not in (last_three_cols + time_cols)]
+    new_ordercols = last_three_cols + time_cols + remaining_cols
+    return (new_ordercols,)
+
+
+@app.cell
+def _(df_student_math, new_ordercols):
+    df_student_math_2 = df_student_math[new_ordercols]
+    return (df_student_math_2,)
+
+
+@app.cell
+def _(df_student_math_2):
+    df_student_math_2
+    return
+
+
+@app.cell
+def _(df_student_math_2):
+    df_student_math_2['school']
+    return
+
+
+@app.cell
+def _(df_student_math, mo):
+    # Create a dropdown widget to select a column
+    column_selector = mo.ui.dropdown(
+        options=df_student_math.columns.tolist(),
+        value=df_student_math.columns[0],  # Default to first column
+        label="Select Column"
+    )
+
+    # Display the dropdown
+    column_selector
+    return (column_selector,)
+
+
+@app.cell
+def _(column_data, mo, pd, selected_column):
+    # len(column_selector.value)
+    # df_student_math_2[selected_column].count()
+    # pd.api.types.is_numeric_dtype(column_data)
+
+    def get_categorical_stats(col_name):
+        summary_stats_1 = pd.DataFrame({
+            'Count': [column_data.count()],
+            'Unique': [column_data.nunique()],
+            'Top': [column_data.mode().iloc[0] if not column_data.mode().empty else None],
+            'Freq': [column_data.value_counts().iloc[0] if not column_data.empty else None]
+        })
+        summary_md_1 = mo.md(f"""
+        ## Summary for Column: `{selected_column}`
+    
+        ### Data Type: `{column_data.dtype}`
+    
+        ### Statistics:
+        {summary_stats_1.to_string()}
+    
+        ### Value Counts:
+        """)
+    
+        value_counts_1 = pd.DataFrame(column_data.value_counts().head(10))
+    
+        # Return both markdown and dataframe
+        mo.vstack([summary_md_1, value_counts_1])
+
+    return
+
+
+@app.cell
+def _(column_selector, df_student_math, mo, pd):
+    # Get the selected column and display summary statistics
+    selected_column = column_selector.value
+    column_data = df_student_math[selected_column]
+
+    # Determine column type and display appropriate summary
+    if pd.api.types.is_numeric_dtype(column_data):
+        # Numeric summary
+        print("Numeric dtype")
+        summary_stats = pd.DataFrame({
+            'Count': [column_data.count()],
+            'Mean': [column_data.mean()],
+            'Std': [column_data.std()],
+            'Min': [column_data.min()],
+            '25%': [column_data.quantile(0.25)],
+            '50%': [column_data.median()],
+            '75%': [column_data.quantile(0.75)],
+            'Max': [column_data.max()]
+        })
+
+        # Create the output
+        summary_md = mo.md(f"""
+        ## Summary for Column: `{selected_column}`
+
+        ### Data Type: `{column_data.dtype}`
+
+        ### Statistics:
+        {summary_stats.to_string()}
+
+        ### Sample Values:
+        """)
+
+        sample_values = pd.DataFrame(column_data.head(10).reset_index(drop=True))
+
+        # Return both markdown and dataframe
+        mo.vstack([summary_md, sample_values])
+    else:
+        # Categorical summary
+        summary_stats = pd.DataFrame({
+            'Count': [column_data.count()],
+            'Unique': [column_data.nunique()],
+            'Top': [column_data.mode().iloc[0] if not column_data.mode().empty else None],
+            'Freq': [column_data.value_counts().iloc[0] if not column_data.empty else None]
+        })
+
+        # Create the output
+        summary_md = mo.md(f"""
+        ## Summary for Column: `{selected_column}`
+
+        ### Data Type: `{column_data.dtype}`
+
+        ### Statistics:
+        {summary_stats.to_string()}
+
+        ### Value Counts:
+        """)
+
+        value_counts = pd.DataFrame(column_data.value_counts().head(10))
+
+        # Return both markdown and dataframe
+        mo.vstack([summary_md, value_counts])
+    return column_data, selected_column
+
+
+@app.cell
+def _():
     return
 
 
