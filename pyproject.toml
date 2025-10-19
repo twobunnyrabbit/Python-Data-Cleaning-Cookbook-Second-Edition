@@ -5,6 +5,6 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "marimo[lsp]>=0.16.5",
+    "marimo[lsp,mcp]>=0.16.5",
     "watchdog>=6.0.0",
 ]
