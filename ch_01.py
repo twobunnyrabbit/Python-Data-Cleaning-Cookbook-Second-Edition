@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.16.5"
+__generated_with = "0.17.0"
 app = marimo.App(width="medium")
 
 
@@ -317,38 +317,6 @@ def _(df_student_math, mo):
 
 
 @app.cell
-def _(column_data, mo, pd, selected_column):
-    # len(column_selector.value)
-    # df_student_math_2[selected_column].count()
-    # pd.api.types.is_numeric_dtype(column_data)
-
-    def get_categorical_stats(col_name):
-        summary_stats_1 = pd.DataFrame({
-            'Count': [column_data.count()],
-            'Unique': [column_data.nunique()],
-            'Top': [column_data.mode().iloc[0] if not column_data.mode().empty else None],
-            'Freq': [column_data.value_counts().iloc[0] if not column_data.empty else None]
-        })
-        summary_md_1 = mo.md(f"""
-        ## Summary for Column: `{selected_column}`
-    
-        ### Data Type: `{column_data.dtype}`
-    
-        ### Statistics:
-        {summary_stats_1.to_string()}
-    
-        ### Value Counts:
-        """)
-    
-        value_counts_1 = pd.DataFrame(column_data.value_counts().head(10))
-    
-        # Return both markdown and dataframe
-        mo.vstack([summary_md_1, value_counts_1])
-
-    return
-
-
-@app.cell
 def _(column_selector, df_student_math, mo, pd):
     # Get the selected column and display summary statistics
     selected_column = column_selector.value
@@ -357,7 +325,6 @@ def _(column_selector, df_student_math, mo, pd):
     # Determine column type and display appropriate summary
     if pd.api.types.is_numeric_dtype(column_data):
         # Numeric summary
-        print("Numeric dtype")
         summary_stats = pd.DataFrame({
             'Count': [column_data.count()],
             'Mean': [column_data.mean()],
@@ -383,8 +350,8 @@ def _(column_selector, df_student_math, mo, pd):
 
         sample_values = pd.DataFrame(column_data.head(10).reset_index(drop=True))
 
-        # Return both markdown and dataframe
-        mo.vstack([summary_md, sample_values])
+        # Capture and return the display
+        summary_display = mo.hstack([summary_md, sample_values])
     else:
         # Categorical summary
         summary_stats = pd.DataFrame({
@@ -408,9 +375,93 @@ def _(column_selector, df_student_math, mo, pd):
 
         value_counts = pd.DataFrame(column_data.value_counts().head(10))
 
-        # Return both markdown and dataframe
-        mo.vstack([summary_md, value_counts])
-    return column_data, selected_column
+        # Capture and return the display
+        summary_display = mo.hstack([summary_md, value_counts])
+
+    summary_display
+    return
+
+
+@app.cell
+def _():
+    import re
+
+    def parse_variable_string(s):
+        # Regex pattern to capture variable name, label, and type
+        # pattern = r'^\d+\s+(\w+)\s*-\s*([^-(]+)\s*-\s*\(([^)]+)\)$'
+        # pattern = r'^\d+\s+(\w+) - ([^(]*\()\s?\(([^)]*)'
+        pattern = r'^\d+\s+(\w+) \- ([^(]*)\s+\(([^)]*)'
+        match = re.match(pattern, s.strip())
+        if match:
+            variable = match.group(1).strip()
+            label = match.group(2).strip()
+            var_type = match.group(3).strip()
+            return {
+                'variable': variable,
+                'label': label,
+                'type': var_type
+            }
+            # return match
+        print("No match")
+        return None
+    return parse_variable_string, re
+
+
+@app.cell
+def _(re):
+    # process type
+    def process_type(s):
+        pattern = r'([^:]*):\s+(.*)'
+
+        match = re.match(pattern, s)
+
+        if match:
+            type = match.group(1)
+            type_value = match.group(2)
+            return {
+                'type': type,
+                'values': type_value.replace("\"", "")
+            }
+        return None
+    return (process_type,)
+
+
+@app.cell
+def _(parse_variable_string):
+    lines = []
+    with open('./1. ImportingTabularData/data/student.txt') as file:
+        for id, line in enumerate(file):
+            if line.strip().startswith(tuple('0123456789')):
+                l = line.strip()
+                # print(f'{l}')
+                lines.append(parse_variable_string(l))
+    lines[:5]
+    return (lines,)
+
+
+@app.cell
+def _(lines):
+    # process type
+
+    lines_test = lines[:10]
+    lines_test
+    return (lines_test,)
+
+
+@app.cell
+def _(lines_test, process_type):
+    for i in range(len(lines_test)):
+        type_to_process = lines_test[i]['type']
+        processed_type = process_type(type_to_process)
+        lines_test[i]['type'] = processed_type
+        print(processed_type)
+    return
+
+
+@app.cell
+def _(lines_test):
+    lines_test
+    return
 
 
 @app.cell
