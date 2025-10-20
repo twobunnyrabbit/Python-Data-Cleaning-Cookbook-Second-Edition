@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.17.0"
+__generated_with = "0.16.5"
 app = marimo.App(width="medium")
 
 
@@ -399,7 +399,7 @@ def _():
             return {
                 'variable': variable,
                 'label': label,
-                'type': var_type
+                'type_spec': var_type
             }
             # return match
         print("No match")
@@ -451,16 +451,23 @@ def _(lines):
 @app.cell
 def _(lines_test, process_type):
     for i in range(len(lines_test)):
-        type_to_process = lines_test[i]['type']
+        type_to_process = lines_test[i]['type_spec']
         processed_type = process_type(type_to_process)
-        lines_test[i]['type'] = processed_type
+        lines_test[i]['type_spec'] = processed_type
         print(processed_type)
     return
 
 
 @app.cell
 def _(lines_test):
-    lines_test
+    binary_vars = [x['variable'] for x in lines_test if x['type_spec']['type'] in ['binary', 'nominal']] 
+    return (binary_vars,)
+
+
+@app.cell
+def _(binary_vars, df_student_math_2):
+    # binary_vars = [x['variable'] for x in binary_vars]
+    df_student_math_2[binary_vars]
     return
 
 
