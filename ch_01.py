@@ -8,10 +8,11 @@ app = marimo.App(width="medium")
 def _():
     import marimo as mo
     import pandas as pd
+    import numpy as np
     import os
 
     from dotenv import load_dotenv
-    return load_dotenv, mo, pd
+    return load_dotenv, mo, np, pd
 
 
 @app.cell
@@ -428,6 +429,7 @@ def _(re):
 
 @app.cell
 def _(parse_variable_string):
+    # list to store each line read
     lines = []
     with open('./1. ImportingTabularData/data/student.txt') as file:
         for id, line in enumerate(file):
@@ -435,39 +437,106 @@ def _(parse_variable_string):
                 l = line.strip()
                 # print(f'{l}')
                 lines.append(parse_variable_string(l))
-    lines[:5]
+
+    # view the first 5 entries
+    lines
     return (lines,)
 
 
 @app.cell
-def _(lines):
+def _():
     # process type
-
-    lines_test = lines[:10]
-    lines_test
-    return (lines_test,)
+    # copy to temp list to work on function
+    # once it works comment it out
+    # lines_test = lines[:10]
+    # lines_test
+    return
 
 
 @app.cell
-def _(lines_test, process_type):
-    for i in range(len(lines_test)):
-        type_to_process = lines_test[i]['type_spec']
+def _(lines, process_type):
+    for i in range(len(lines)):
+        type_to_process = lines[i]['type_spec']
+        # print(type_to_process)
         processed_type = process_type(type_to_process)
-        lines_test[i]['type_spec'] = processed_type
+        lines[i]['type_spec'] = processed_type
         print(processed_type)
     return
 
 
 @app.cell
-def _(lines_test):
-    binary_vars = [x['variable'] for x in lines_test if x['type_spec']['type'] in ['binary', 'nominal']] 
-    return (binary_vars,)
+def _(lines):
+    binary_vars = [x['variable'] for x in lines if type(x) == 'dict' and x['type_spec']['type'] in ['binary', 'nominal']] 
+    return
 
 
 @app.cell
-def _(binary_vars, df_student_math_2):
-    # binary_vars = [x['variable'] for x in binary_vars]
-    df_student_math_2[binary_vars]
+def _(df_student_math_2):
+    df_student_math_2['famrel'].value_counts()
+    return
+
+
+@app.cell
+def _(np):
+    setvalues = {
+        "famrel":{1:"1:very bad",2:"2:bad",
+         3:"3:neutral",4:"4:good",5:"5:excellent"},
+       "freetime":{1:"1:very low",2:"2:low",
+         3:"3:neutral",4:"4:high",5:"5:very high"},
+       "goout":{1:"1:very low",2:"2:low",3:"3:neutral",
+         4:"4:high",5:"5:very high"},
+       "Medu":{0:np.nan,1:"1:k-4",2:"2:5-9",
+         3:"3:secondary ed",4:"4:higher ed"},
+       "Fedu":{0:np.nan,1:"1:k-4",2:"2:5-9",
+         3:"3:secondary ed",4:"4:higher ed"}
+    }
+    return (setvalues,)
+
+
+@app.cell
+def _(setvalues):
+    setvalues
+    return
+
+
+@app.cell
+def _(df_student_math_2, setvalues):
+    # replace values
+    df_student_math_2.replace(setvalues, inplace=True)
+    return
+
+
+@app.cell
+def _(df_student_math_2):
+    df_student_math_2['famrel'].value_counts()
+    return
+
+
+@app.cell
+def _(df_student_math_2, setvalues):
+    # change to categories
+    setvalues_keys = [k for k in setvalues.keys()]
+    # setvalues_keys
+    df_student_math_2[setvalues_keys].memory_usage(index=False)
+    return (setvalues_keys,)
+
+
+@app.cell
+def _(df_student_math_2, setvalues_keys):
+    for col_ in df_student_math_2[setvalues_keys].columns:
+        df_student_math_2[col_] = df_student_math_2[col_].astype('category')
+    return
+
+
+@app.cell
+def _(df_student_math_2, setvalues_keys):
+    df_student_math_2[setvalues_keys].memory_usage(index=False)
+    return
+
+
+@app.cell
+def _(df_student_math_2):
+    df_student_math_2['famrel'].value_counts(normalize=True)
     return
 
 
